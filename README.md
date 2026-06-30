@@ -38,7 +38,7 @@ python main.py
 ```bash
 streamlit run app.py
 ```
-Then open [http://localhost:8502](http://localhost:8502) in your browser.
+Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
 **Exploratory Data Analysis notebook:**
 ```bash

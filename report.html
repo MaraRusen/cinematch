@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CineMatch — Recommender Systems Report</title>
+<style>
+  /* ── Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 50px;
+  }
+
+  /* ── Typography ── */
+  h1 { font-size: 26pt; color: #1a1a2e; margin-bottom: 6px; }
+  h2 { font-size: 16pt; color: #16213e; border-bottom: 2px solid #e63946; padding-bottom: 4px; margin: 32px 0 12px; }
+  h3 { font-size: 12pt; color: #16213e; margin: 20px 0 6px; }
+  h4 { font-size: 10.5pt; color: #444; margin: 14px 0 4px; font-style: italic; }
+  p  { margin-bottom: 10px; }
+  ul, ol { margin: 6px 0 10px 22px; }
+  li { margin-bottom: 3px; }
+  a  { color: #e63946; }
+  small { font-size: 9pt; color: #666; }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 3px solid #e63946;
+    margin-bottom: 36px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: #e63946;
+    color: #fff;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 2px;
+    margin-bottom: 14px;
+  }
+  .cover .subtitle { font-size: 13pt; color: #555; margin-top: 8px; }
+  .cover .meta { margin-top: 28px; font-size: 10pt; color: #666; line-height: 2; }
+
+  /* ── Checklist box ── */
+  .checklist {
+    background: #f8f9fa;
+    border-left: 4px solid #2a9d8f;
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .check  { color: #2a9d8f; font-weight: 700; }
+  .cross  { color: #e63946; font-weight: 700; }
+
+  /* ── Code ── */
+  code {
+    font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    font-size: 9pt;
+    background: #f1f3f5;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #c0392b;
+  }
+  pre {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 14px 18px;
+    border-radius: 6px;
+    font-size: 8.5pt;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 10px 0 14px;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* ── Formula box ── */
+  .formula {
+    background: #fff8f0;
+    border: 1px solid #f4a261;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-family: "Cascadia Code", monospace;
+    font-size: 10pt;
+    margin: 10px 0;
+    text-align: center;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #16213e;
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td { padding: 6px 10px; border-bottom: 1px solid #e9ecef; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  .best  { color: #2a9d8f; font-weight: 700; }
+  .worst { color: #e63946; }
+  td.num { text-align: right; font-family: monospace; }
+
+  /* ── Info / warning boxes ── */
+  .info {
+    background: #e8f4fd;
+    border-left: 4px solid #3498db;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 9.5pt;
+  }
+  .warn {
+    background: #fff3cd;
+    border-left: 4px solid #f0c040;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 9.5pt;
+  }
+  .section-tag {
+    display: inline-block;
+    background: #16213e;
+    color: #fff;
+    font-size: 8pt;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Architecture diagram ── */
+  .arch {
+    font-family: monospace;
+    font-size: 8.5pt;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 16px;
+    border-radius: 4px;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 0; max-width: 100%; font-size: 9.5pt; }
+    .page-break { page-break-after: always; }
+    a { color: inherit; text-decoration: none; }
+    pre { background: #f5f5f5; color: #222; border: 1px solid #ccc; }
+  }
+  .page-break { margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     COVER
+══════════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="badge">Individual Assignment</div>
+  <h1>CineMatch</h1>
+  <p class="subtitle">A Modular Movie Recommender System</p>
+  <p class="subtitle" style="font-size:11pt; margin-top:6px;">Recommender Systems · ESADE · 2025/26</p>
+  <div class="meta">
+    <strong>Dataset:</strong> MovieLens Small (100,836 ratings · 9,742 movies · 610 users)<br>
+    <strong>Algorithms:</strong> 7 methods across 4 families<br>
+    <strong>Metrics:</strong> Precision, Recall, NDCG, MRR, Hit Rate, Coverage, Novelty, Popularity Bias, ILD<br>
+    <strong>Split:</strong> Per-user temporal holdout (most recent 20% as test)<br>
+    <strong>UI:</strong> Streamlit interactive prototype (3 pages)
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     REQUIREMENTS CHECKLIST
+══════════════════════════════════════════════════════════════════════ -->
+<h2>1. Assignment Requirements — Completion Checklist</h2>
+
+<h3>Purpose</h3>
+<div class="checklist">
+  <p><span class="check">✓</span> Build one recommender prototype over the course, expanding it every week — <em>all 7 algorithms live in independent modules loaded by a single pipeline (<code>main.py</code>)</em></p>
+  <p><span class="check">✓</span> Learn by building — every method is a self-contained, runnable module (<code>baselines.py</code>, <code>collaborative.py</code>, <code>content_based.py</code>, <code>matrix_factorization.py</code>)</p>
+  <p><span class="check">✓</span> Same data, multiple algorithms — all 7 models use the identical per-user temporal train-test split</p>
+  <p><span class="check">✓</span> Think critically — 9 metrics including Novelty, Coverage, Popularity Bias, and ILD; accuracy-novelty trade-off discussed</p>
+</div>
+
+<h3>Suggested Agenda</h3>
+<div class="checklist">
+  <p><span class="check">✓</span> <strong>Design + implement prototype UI</strong> — <code>app.py</code> (Streamlit, 3 interactive pages)</p>
+  <p><span class="check">✓</span> <strong>Setup + dataset + EDA + preprocessing</strong> — <code>data_loader.py</code> + <code>eda.ipynb</code> (9-section notebook with executed outputs)</p>
+  <p><span class="check">✓</span> <strong>Non-personalised recommenders</strong> — MostPopular, HighestRated, Random in <code>baselines.py</code></p>
+  <p><span class="check">✓</span> <strong>Collaborative filtering</strong> — Item-Item CF and User-User CF in <code>collaborative.py</code></p>
+  <p><span class="check">✓</span> <strong>Content-based filtering</strong> — TF-IDF on genres + user tags in <code>content_based.py</code></p>
+  <p><span class="check">✓</span> <strong>Matrix factorisation</strong> — TruncatedSVD in <code>matrix_factorization.py</code></p>
+  <p><span class="check">✓</span> <strong>Evaluation</strong> — 9 metrics at K=5, 10, 20; all 610 users; in <code>evaluation.py</code></p>
+</div>
+
+<h3>Deliverables &amp; Grading</h3>
+<div class="checklist">
+  <p><span class="check">✓</span> <strong>Prototype (UX — 20%)</strong> — Streamlit app with Dataset Insights, Get Recommendations (with predicted scores + cold-start detection), and Compare Models pages</p>
+  <p><span class="check">✓</span> <strong>Technical implementations (50%)</strong> — 7 working algorithms with consistent <code>.fit() / .recommend()</code> API</p>
+  <p><span class="check">✓</span> <strong>Evaluation (30%)</strong> — 9 metrics at K=5/10/20, relevance threshold ≥3.5 stars, full 610-user temporal evaluation; results saved to <code>results.csv</code> and <code>results_multi_k.csv</code></p>
+  <p><span class="check">✓</span> <strong>Agile development</strong> — evaluation module functional from the first algorithm; every new method is immediately benchmarked</p>
+</div>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SYSTEM ARCHITECTURE
+══════════════════════════════════════════════════════════════════════ -->
+<h2>2. System Architecture</h2>
+
+<div class="arch">
+ml-latest-small/                 ← MovieLens dataset (ratings, movies, tags)
+│
+├── data_loader.py               ← Shared I/O: load_ratings(), load_movies(),
+│                                   load_tags(), split() [temporal], describe()
+│
+├── baselines.py                 ← MostPopular · HighestRated · Random
+├── collaborative.py             ← ItemItemCF (min_support=5) · UserUserCF
+├── content_based.py             ← ContentBased (TF-IDF genres + tags)
+├── matrix_factorization.py      ← MatrixFactorization (TruncatedSVD)
+│
+├── evaluation.py                ← 9 metrics + evaluate() runner (rel_threshold=3.5)
+├── main.py                      ← Full pipeline: load → fit → evaluate → tables
+│
+├── results.csv                  ← K=10 results (all 7 models, 9 metrics)
+├── results_multi_k.csv          ← Results at K=5, 10, 20
+│
+├── app.py                       ← Streamlit interactive prototype
+└── eda.ipynb                    ← 9-section exploratory analysis notebook
+</div>
+
+<p>Every recommender exposes the same two-method API:</p>
+<pre><code>model.fit(train_ratings, ...)      # learn from training data
+model.recommend(user_id, train, n) # return top-n item IDs</code></pre>
+<p>This uniform interface lets <code>main.py</code> and <code>app.py</code> treat all algorithms identically, making it trivial to add a new method without touching the rest of the code.</p>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     EDA
+══════════════════════════════════════════════════════════════════════ -->
+<h2>3. Dataset &amp; Exploratory Data Analysis</h2>
+
+<span class="section-tag">eda.ipynb · data_loader.py</span>
+
+<h3>Key Statistics</h3>
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Users</td><td>610</td></tr>
+  <tr><td>Movies (rated)</td><td>9,742</td></tr>
+  <tr><td>Ratings</td><td>100,836</td></tr>
+  <tr><td>Sparsity</td><td class="best">98.3%</td></tr>
+  <tr><td>Mean rating</td><td>3.50 / 5</td></tr>
+  <tr><td>Avg ratings per user</td><td>165</td></tr>
+  <tr><td>Avg ratings per movie</td><td>10.4</td></tr>
+  <tr><td>Movies with user tags</td><td>~1,572 (45%)</td></tr>
+  <tr><td>Unique tags</td><td>3,683</td></tr>
+  <tr><td>Dataset span</td><td>March 1996 – September 2018</td></tr>
+</table>
+
+<h3>Key Findings</h3>
+<table>
+  <tr><th>Finding</th><th>Implication for Recommender Design</th></tr>
+  <tr>
+    <td><strong>98.3% sparsity</strong></td>
+    <td>Raw collaborative filtering is noisy; dimensionality reduction (Matrix Factorization) compresses the matrix into meaningful latent factors</td>
+  </tr>
+  <tr>
+    <td><strong>Long-tail popularity</strong></td>
+    <td>Top 10% of movies account for ~50% of ratings. Popularity baselines are biased toward blockbusters; CF inherits this bias; Content-Based is far less affected</td>
+  </tr>
+  <tr>
+    <td><strong>Positive rating bias</strong></td>
+    <td>Users rate movies they chose to watch → ratings skew positive (mean 3.50). Using only ratings ≥3.5 as "relevant" (our threshold) avoids treating 1-star ratings as positive signal</td>
+  </tr>
+  <tr>
+    <td><strong>Cold-start users (~7%)</strong></td>
+    <td>Users with fewer than 20 ratings. CF and MF struggle here; the app flags this and suggests Content-Based or MostPopular fallbacks</td>
+  </tr>
+  <tr>
+    <td><strong>Tag coverage ~45%</strong></td>
+    <td>Combining genres + tags in TF-IDF enriches item vectors, but ~55% of movies rely on genre labels alone, limiting content-based resolution</td>
+  </tr>
+  <tr>
+    <td><strong>22-year temporal span</strong></td>
+    <td>Motivates a temporal train/test split — later ratings should be predicted from earlier ones, not mixed randomly</td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     ALGORITHMS
+══════════════════════════════════════════════════════════════════════ -->
+<h2>4. Algorithm Implementations</h2>
+
+<!-- 4a Non-personalised -->
+<h3>4a. Non-Personalised Baselines <code>baselines.py</code></h3>
+<p>Three baselines that make no use of the individual user's history. They serve as sanity checks: any personalised method should beat Random, and should aspire to beat MostPopular on accuracy.</p>
+
+<h4>MostPopular</h4>
+<p>Recommends the movies with the highest number of ratings (a proxy for popularity). One global ranking, filtered per-user to exclude already-seen items.</p>
+<pre><code>counts = ratings.groupby("movieId").size()
+ranking = counts.sort_values(ascending=False).index.tolist()</code></pre>
+
+<h4>HighestRated</h4>
+<p>Recommends movies with the highest <em>average</em> rating, subject to a minimum of 20 ratings to prevent obscure movies with a single 5-star rating from dominating.</p>
+
+<h4>Random</h4>
+<p>Uniformly samples unseen movies at random. Lower bound for accuracy; naturally achieves high novelty and catalogue coverage.</p>
+
+<!-- 4b CF -->
+<h3>4b. Collaborative Filtering <code>collaborative.py</code></h3>
+<p>Both methods build a user × item rating matrix (missing = 0) and use <strong>cosine similarity</strong> to find similar items or users. Scoring is fully vectorised via NumPy matrix multiplication.</p>
+
+<h4>Item-Item CF (k = 20, min_support = 5)</h4>
+<p>Finds the k items most similar to each candidate item, then aggregates the target user's ratings of those neighbours.</p>
+<div class="formula">score(u, i) = Σⱼ sim(i,j)·r(u,j) / Σⱼ |sim(i,j)|  &nbsp; (j = top-k rated neighbours)</div>
+<p>The <code>min_support=5</code> parameter zeros out all similarities involving items with fewer than 5 training raters. Without this, single-rater items have cosine similarity = 1.0 with every other item the same user rated (identical direction in user-space), producing artificially inflated scores of 5.0 that flood the top-10. With the filter, P@10 recovered from 0.000 to 0.004.</p>
+
+<div class="warn">
+  <strong>Known limitation:</strong> With 98.3% sparsity, only 35.8% of items have 5 or more raters. For the remaining 64.2%, the similarity column is zeroed out, so those items cannot be scored and rank at zero. This means Item-Item CF effectively operates on a restricted sub-catalogue, which limits recall. The low P@10 (0.004) is a direct consequence of dataset sparsity — not a bug. Loosening to <code>min_support=2</code> was tested and made results worse (P@10 = 0.001), confirming that sparser items produce even noisier similarities.
+</div>
+
+<h4>User-User CF (k = 20)</h4>
+<p>Finds the k users most similar to the target user, then uses their ratings to predict scores for unseen items.</p>
+<div class="formula">score(u, i) = Σₙ sim(u,n)·r(n,i) / Σₙ |sim(u,n)|  &nbsp; (n = top-k similar users)</div>
+
+<!-- 4c CB -->
+<h3>4c. Content-Based Filtering <code>content_based.py</code></h3>
+<p>Builds item vectors from movie metadata (genres + user tags) using TF-IDF, then builds a user profile from their rating history.</p>
+
+<h4>Item vectors</h4>
+<p>Each movie's text is the concatenation of its pipe-separated genres and all user-generated tags (lowercased, deduplicated). TF-IDF with <code>max_features=5000</code> converts this to a sparse vector.</p>
+<pre><code># Example: "Action Sci-Fi" + "mind-bending dystopia time-travel"
+TfidfVectorizer(min_df=1, max_features=5000).fit_transform(item_texts)</code></pre>
+
+<h4>User profile</h4>
+<p>A weighted sum of item vectors, weighted by the user's <em>centred</em> rating (rating minus their personal mean). Items rated above average pull the profile toward their genres; items rated below average push away.</p>
+<div class="formula">profile(u) = Σᵢ (r(u,i) − mean_r(u)) · vector(i)</div>
+
+<h4>Scoring</h4>
+<p>Cosine similarity between the user profile and all unseen item vectors. Top-n items are returned.</p>
+<p><strong>Why genres + tags?</strong> Tags like "mind-bending" or "based on true story" carry semantic meaning that genre labels ("Drama") cannot express. Adding tags expands the TF-IDF vocabulary with ~3,000 terms that differentiate within-genre taste.</p>
+
+<!-- 4d MF -->
+<h3>4d. Matrix Factorization <code>matrix_factorization.py</code></h3>
+<p>Decomposes the user-item rating matrix using Truncated SVD (scikit-learn's randomised SVD, requiring no extra dependencies).</p>
+<div class="formula">R ≈ U · Σ · Vᵀ &nbsp; (50 latent factors)</div>
+<p>The full reconstructed matrix R̂ = U·Σ·Vᵀ is stored at fit time. At inference, a single row lookup and argsort returns top-n recommendations in microseconds.</p>
+
+<div class="warn">
+  <strong>TruncatedSVD vs. proper Matrix Factorization:</strong> This implementation differs from full MF (ALS, BPR, SGD-MF) in three ways: (1) Missing ratings are filled with 0 — conflating "not seen" with "rated 0 stars". (2) No user/item bias terms are modelled, so predicted scores are not interpretable as ratings. (3) No L2 regularisation, which can overfit dense regions. A production system would use implicit ALS or SGD-MF to address all three. TruncatedSVD is used here for reproducibility without additional dependencies.
+</div>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     EVALUATION
+══════════════════════════════════════════════════════════════════════ -->
+<h2>5. Evaluation Methodology</h2>
+<span class="section-tag">evaluation.py · data_loader.py</span>
+
+<h3>Train / Test Split — Temporal (Per-User)</h3>
+<p>For each of the 610 users, ratings are sorted chronologically and the most recent 20% are held out as the test set. The earlier 80% form the training set. This mirrors real deployment: models learn from past interactions and are evaluated on future ones, eliminating the temporal leakage that a random shuffle would introduce.</p>
+<pre><code>for _, group in ratings.groupby("userId"):
+    group_sorted = group.sort_values("timestamp")
+    n_test = max(1, int(len(group_sorted) * 0.2))
+    train_parts.append(group_sorted.iloc[:-n_test])
+    test_parts.append(group_sorted.iloc[-n_test:])</code></pre>
+<p>Every user is guaranteed at least one training rating. The resulting split: <strong>Train 80,896 · Test 19,940</strong> (610 users evaluated).</p>
+
+<h3>Relevance Threshold</h3>
+<p>A test item is counted as "relevant" only if its rating is <strong>≥ 3.5 stars</strong>. This follows the standard practice in RS literature (Herlocker et al., 2004): treating a 0.5-star rating as equally relevant as a 5-star one inflates recall and misrepresents recommendation quality. Users who rated no test items ≥ 3.5 are excluded from precision/recall computation (593 users remain eligible).</p>
+
+<h3>Accuracy Metrics (K = 5, 10, 20)</h3>
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>What it measures</th></tr>
+  <tr><td>Precision@K</td><td>|hits in top-K| / K</td><td>Fraction of recommendations that are relevant</td></tr>
+  <tr><td>Recall@K</td><td>|hits in top-K| / |all relevant|</td><td>Fraction of relevant items retrieved</td></tr>
+  <tr><td>NDCG@K</td><td>DCG / IDCG (binary relevance)</td><td>Ranking quality — penalises hits ranked lower</td></tr>
+  <tr><td>MRR@K</td><td>1 / rank of first hit</td><td>How quickly the first relevant item appears</td></tr>
+  <tr><td>Hit Rate@K</td><td>1 if any hit in top-K, else 0</td><td>Probability of at least one relevant recommendation</td></tr>
+</table>
+
+<h3>Beyond-Accuracy Metrics</h3>
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>What it measures</th></tr>
+  <tr><td>Catalog Coverage</td><td>|unique recommended items| / |catalogue|</td><td>Diversity of recommendations across all users</td></tr>
+  <tr><td>Novelty</td><td>mean −log₂(pop(i) / total ratings)</td><td>Self-information: how surprising/niche the recommendations are (Zhou et al., 2010)</td></tr>
+  <tr><td>Avg Popularity</td><td>mean rating count of recommended items</td><td>Popularity bias — lower means less blockbuster-heavy</td></tr>
+  <tr><td><strong>Intra-List Diversity (ILD)</strong></td><td>1 − mean cosine_sim(vᵢ, vⱼ) for i&lt;j in top-K</td><td>Average pairwise dissimilarity within the recommendation list — higher means more genre variety (Ziegler et al., 2005)</td></tr>
+</table>
+<p>ILD uses the TF-IDF item vectors from the Content-Based model as a shared content representation across all algorithms, making the diversity metric consistent and content-grounded.</p>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     RESULTS
+══════════════════════════════════════════════════════════════════════ -->
+<h2>6. Results (K = 10, 593 eligible users, relevance ≥ 3.5 stars)</h2>
+
+<table>
+  <tr>
+    <th>Model</th>
+    <th class="num">P@10</th>
+    <th class="num">R@10</th>
+    <th class="num">NDCG@10</th>
+    <th class="num">MRR@10</th>
+    <th class="num">HR@10</th>
+    <th class="num">Coverage</th>
+    <th class="num">Novelty</th>
+    <th class="num">AvgPop</th>
+    <th class="num">ILD</th>
+  </tr>
+  <tr>
+    <td>Random</td>
+    <td class="num worst">0.003</td>
+    <td class="num worst">0.002</td>
+    <td class="num worst">0.004</td>
+    <td class="num worst">0.014</td>
+    <td class="num worst">0.032</td>
+    <td class="num">0.119</td>
+    <td class="num">14.27</td>
+    <td class="num best">10.8</td>
+    <td class="num">0.839</td>
+  </tr>
+  <tr>
+    <td>MostPopular</td>
+    <td class="num">0.064</td>
+    <td class="num">0.050</td>
+    <td class="num">0.082</td>
+    <td class="num">0.174</td>
+    <td class="num">0.337</td>
+    <td class="num worst">0.010</td>
+    <td class="num worst">8.57</td>
+    <td class="num worst">216.7</td>
+    <td class="num best">0.952</td>
+  </tr>
+  <tr>
+    <td>HighestRated</td>
+    <td class="num">0.021</td>
+    <td class="num">0.015</td>
+    <td class="num">0.030</td>
+    <td class="num">0.084</td>
+    <td class="num">0.164</td>
+    <td class="num worst">0.004</td>
+    <td class="num">10.76</td>
+    <td class="num">66.1</td>
+    <td class="num">0.973</td>
+  </tr>
+  <tr>
+    <td>ContentBased</td>
+    <td class="num">0.008</td>
+    <td class="num">0.006</td>
+    <td class="num">0.009</td>
+    <td class="num">0.025</td>
+    <td class="num">0.066</td>
+    <td class="num best">0.321</td>
+    <td class="num best">14.64</td>
+    <td class="num best">9.6</td>
+    <td class="num worst">0.201</td>
+  </tr>
+  <tr>
+    <td>ItemItemCF</td>
+    <td class="num">0.004</td>
+    <td class="num worst">0.001</td>
+    <td class="num">0.004</td>
+    <td class="num">0.012</td>
+    <td class="num worst">0.037</td>
+    <td class="num">0.059</td>
+    <td class="num">13.57</td>
+    <td class="num best">7.3</td>
+    <td class="num">0.815</td>
+  </tr>
+  <tr>
+    <td>UserUserCF</td>
+    <td class="num">0.010</td>
+    <td class="num">0.017</td>
+    <td class="num">0.014</td>
+    <td class="num">0.027</td>
+    <td class="num">0.088</td>
+    <td class="num">0.156</td>
+    <td class="num">12.59</td>
+    <td class="num">29.3</td>
+    <td class="num">0.883</td>
+  </tr>
+  <tr style="background:#e8f5e9;">
+    <td><strong>MatrixFact</strong></td>
+    <td class="num best">0.090</td>
+    <td class="num best">0.086</td>
+    <td class="num best">0.112</td>
+    <td class="num best">0.223</td>
+    <td class="num best">0.498</td>
+    <td class="num">0.068</td>
+    <td class="num">9.55</td>
+    <td class="num worst">126.3</td>
+    <td class="num">0.926</td>
+  </tr>
+</table>
+<small>Green = best per column · Red = worst per column · Evaluated on 593 users with at least one liked (≥3.5 star) test item · Temporal split</small>
+
+<h3>Precision at K = 5, 10, 20</h3>
+<table>
+  <tr><th>Model</th><th class="num">P@5</th><th class="num">P@10</th><th class="num">P@20</th><th>Trend</th></tr>
+  <tr><td>Random</td><td class="num">0.003</td><td class="num">0.003</td><td class="num">0.002</td><td>Flat (as expected)</td></tr>
+  <tr><td>MostPopular</td><td class="num">0.079</td><td class="num">0.064</td><td class="num">0.054</td><td>Decreases — popular movies concentrated at top</td></tr>
+  <tr><td>HighestRated</td><td class="num">0.024</td><td class="num">0.021</td><td class="num">0.025</td><td>Stable — rating-quality signal holds across cutoffs</td></tr>
+  <tr><td>ContentBased</td><td class="num">0.010</td><td class="num">0.008</td><td class="num">0.006</td><td>Decreases — best matches front-loaded</td></tr>
+  <tr><td>ItemItemCF</td><td class="num">0.003</td><td class="num">0.004</td><td class="num">0.004</td><td>Stable (low throughout)</td></tr>
+  <tr><td>UserUserCF</td><td class="num">0.008</td><td class="num">0.010</td><td class="num">0.011</td><td>Increases — signal spreads across longer lists</td></tr>
+  <tr style="background:#e8f5e9;"><td><strong>MatrixFact</strong></td><td class="num best">0.103</td><td class="num best">0.090</td><td class="num best">0.079</td><td>Decreases — but dominates at all K</td></tr>
+</table>
+<p>Rankings are consistent across all three cutoffs: MatrixFact leads at K=5, 10, and 20. The multi-K table confirms the results are not a K=10 artefact.</p>
+
+<h3>Key Observations</h3>
+<ol>
+  <li><strong>Matrix Factorization dominates all accuracy metrics</strong> — P@10 = 0.090, NDCG@10 = 0.112, HR@10 = 0.498. The 50 latent dimensions capture collaborative taste patterns invisible to raw item-item similarity, and this advantage holds at K=5 and K=20.</li>
+  <li><strong>MostPopular is a strong baseline</strong> — P@10 = 0.064, second only to MatrixFact, with zero personalisation overhead. Its Coverage (1.0%) reveals the cost: it effectively recommends the same ~100 movies to everyone.</li>
+  <li><strong>The accuracy–novelty trade-off is stark</strong> — MatrixFact (highest accuracy) has Novelty=9.55 and AvgPop=126. ContentBased (highest novelty=14.64, highest coverage=32.1%) has P@10=0.008. No single model is best on both dimensions.</li>
+  <li><strong>ContentBased has the lowest ILD (0.201)</strong> — it clusters recommendations tightly by genre. This makes sense: the user profile is a weighted genre/tag vector, so all recommendations land in similar content territory. MostPopular has the highest ILD (0.952) because popular movies span many genres.</li>
+  <li><strong>ItemItemCF accuracy is limited by sparsity</strong> — only 35.8% of items have ≥5 co-raters. For the rest, similarities are zeroed out by the <code>min_support=5</code> filter, so they cannot be ranked. This is a fundamental constraint of memory-based CF on 98.3%-sparse data, not a bug. The model's low AvgPop (7.3) shows it does surface genuinely niche items when it can form opinions.</li>
+  <li><strong>UserUserCF recall (0.017) exceeds its precision (0.010)</strong> — it finds a meaningful fraction of liked items, just not always in the top 10 slots. Its coverage (15.6%) is solid for a CF method.</li>
+</ol>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     BEYOND ACCURACY
+══════════════════════════════════════════════════════════════════════ -->
+<h2>7. Beyond-Accuracy Analysis</h2>
+
+<h3>Popularity Bias</h3>
+<p>AvgPopularity (mean rating count of recommended items) reveals how blockbuster-heavy each model is. MostPopular averages 217 ratings per recommendation — almost exclusively top-tier films. MatrixFact (126) also leans popular, reflecting that latent factors trained on dense data are dominated by frequently-rated movies. ContentBased (9.6) and ItemItemCF (7.3) surface mostly long-tail films.</p>
+<p>In practice: a system that recommends <em>Forrest Gump</em> and <em>Pulp Fiction</em> to every user adds no value for users who have already seen the classics. ContentBased's low popularity bias makes it a strong complement to MatrixFact in a hybrid system.</p>
+
+<h3>Novelty</h3>
+<p>Self-information novelty (Zhou et al., 2010) quantifies how "surprising" recommendations are. ContentBased (14.64) provides the most novel recommendations — its genre+tag profiles point to corner items of the catalogue. MostPopular (8.57) provides the least — it recommends items that essentially everyone has already heard of. This directly mirrors the popularity bias picture above.</p>
+
+<h3>Catalog Coverage</h3>
+<p>ContentBased recommends from 32.1% of the catalogue across all users — far more than any other method. This stems from the personalised genre+tag profile: each user's profile vector points to a different region of the item space. MostPopular's 1.0% coverage means it treats 9,742 movies as if only ~97 were worth recommending.</p>
+
+<h3>Intra-List Diversity (ILD)</h3>
+<p>ILD measures the average pairwise cosine dissimilarity within each top-10 list. The results reveal a striking pattern:</p>
+<ul>
+  <li><strong>ContentBased: ILD = 0.201</strong> — the lowest of all models. Recommendations cluster tightly by genre; a user who likes sci-fi gets 10 sci-fi recommendations with similar TF-IDF vectors.</li>
+  <li><strong>MostPopular: ILD = 0.952</strong> — the highest. Popular movies span many genres (action, drama, comedy, thriller), so the top-10 list is naturally diverse.</li>
+  <li><strong>MatrixFact: ILD = 0.926</strong> — high diversity despite high accuracy. Latent factors capture multi-genre taste patterns, producing varied lists.</li>
+</ul>
+<p>This finding suggests ContentBased could benefit from a post-processing diversification step (e.g., MMR re-ranking) to avoid genre monotony while retaining content relevance.</p>
+
+<h3>The Accuracy–Diversity Trade-off</h3>
+<div class="info">
+A key insight from recommender systems research: <strong>optimising for accuracy alone leads to filter bubbles and popularity bias</strong>. High-accuracy models (MatrixFact, MostPopular) converge on popular items and high ILD. High-novelty models (ContentBased) explore the long tail but sacrifice hit rate and intra-list variety. A production system would blend both — e.g., 80% MatrixFact + 20% ContentBased — to balance relevance with discovery, then apply MMR or DPP re-ranking for final list diversity.
+</div>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     UI
+══════════════════════════════════════════════════════════════════════ -->
+<h2>8. User Interface — Streamlit Prototype</h2>
+<span class="section-tag">app.py</span>
+
+<p>The Streamlit app provides a browser-based interactive interface. It is structured into three pages accessible from the sidebar:</p>
+
+<h3>Page 1: Dataset Insights</h3>
+<p>Five KPI cards (Users, Movies, Ratings, Sparsity, Avg Rating) followed by four charts: rating distribution histogram, ratings-per-user distribution, top-15 most-rated movies, and genre frequency. A fifth chart shows the long-tail popularity curve (log scale) with a "top 10% threshold" marker. A sparsity callout explains the implication for algorithm choice.</p>
+
+<h3>Page 2: Get Recommendations</h3>
+<p>The user selects any of the 610 users from a dropdown, picks an algorithm, and sets how many recommendations to show (5–20). The left panel shows the user's profile (top-rated movies, favourite genres). A <strong>cold-start warning</strong> appears if the user has fewer than 20 training ratings, recommending Content-Based or MostPopular as fallbacks. The right panel shows the ranked list with title, genres, popularity count, and — for Matrix Factorization — the <strong>predicted reconstruction score</strong>, making the model's confidence in each recommendation visible.</p>
+
+<h3>Page 3: Compare Models</h3>
+<p>A styled metrics table (green = best, red = worst per column) with all 9 metrics for all 7 models. Five accuracy bar charts (P@10, R@10, NDCG@10, MRR@10, HR@10) are followed by four beyond-accuracy charts (Coverage, Novelty, AvgPopularity, ILD). A Key Takeaways section summarises the main findings. A download button exports <code>results.csv</code>.</p>
+
+<h3>Performance</h3>
+<p>All model training and evaluation runs once on first load, cached by <code>@st.cache_resource</code>. Subsequent navigation and interactions are instantaneous.</p>
+
+<pre><code># Run the app
+cd "Individual Assignment"
+python -m streamlit run app.py
+# → opens at http://localhost:8501</code></pre>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     TECHNICAL CHALLENGES
+══════════════════════════════════════════════════════════════════════ -->
+<h2>9. Technical Challenges &amp; Solutions</h2>
+
+<table>
+  <tr><th>Challenge</th><th>Solution</th></tr>
+  <tr>
+    <td><strong>Extreme sparsity (98.3%)</strong></td>
+    <td>Used TruncatedSVD (randomised, memory-efficient) rather than exact SVD. Stored the reconstructed matrix R̂ at fit time rather than recomputing at inference.</td>
+  </tr>
+  <tr>
+    <td><strong>Vectorising CF scoring</strong></td>
+    <td>Both CF methods use fully vectorised NumPy operations (<code>sim_matrix @ user_vec</code>) instead of Python loops, reducing inference from O(n²) Python iterations to a single BLAS matrix multiplication.</td>
+  </tr>
+  <tr>
+    <td><strong>ItemItemCF single-rater artefact</strong></td>
+    <td>Items rated by only one user have cosine similarity = 1.0 with every other item that user rated (identical direction in user-space). These flood the top-10 with scores equal to the user's highest rating. Fix: <code>min_support=5</code> zeros similarities for items with fewer than 5 raters. P@10 recovered from 0.000 to 0.004. Lowering to <code>min_support=2</code> was tested and worsened results (P@10 = 0.001), confirming that the issue is fundamental to dataset sparsity.</td>
+  </tr>
+  <tr>
+    <td><strong>Temporal leakage in evaluation</strong></td>
+    <td>A random train/test shuffle leaks future ratings into training. Fixed with a per-user temporal split: each user's most recent 20% of ratings are held out, mimicking real deployment conditions.</td>
+  </tr>
+  <tr>
+    <td><strong>Relevance definition</strong></td>
+    <td>Counting all test items as "relevant" regardless of rating inflates recall (a 0.5-star item treated the same as a 5-star one). Fixed by applying a relevance threshold of ≥3.5 stars, following Herlocker et al. (2004).</td>
+  </tr>
+  <tr>
+    <td><strong>Content-based vocabulary richness</strong></td>
+    <td>Genres alone give only 19 features — too coarse to differentiate within-genre taste. Adding user-generated tags (lowercased, deduplicated per movie) expands the vocabulary to ~3,000 terms, capturing nuance like "visually stunning" or "based on true story".</td>
+  </tr>
+  <tr>
+    <td><strong>Module portability</strong></td>
+    <td>Hard-coded relative paths break when the app is launched from a different working directory. Fixed using <code>Path(__file__).parent</code> to build absolute paths at import time.</td>
+  </tr>
+  <tr>
+    <td><strong>Evaluation scope</strong></td>
+    <td>Original code evaluated only 50 of 610 users. Fixed by evaluating all eligible users (those appearing in both train and test splits with at least one liked test item).</td>
+  </tr>
+  <tr>
+    <td><strong>Streamlit startup time</strong></td>
+    <td>Training 7 models including two cosine similarity matrices takes ~60 seconds. Used <code>@st.cache_resource</code> to train once per session; all subsequent interactions are instant.</td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     CONCLUSIONS
+══════════════════════════════════════════════════════════════════════ -->
+<h2>10. Conclusions</h2>
+
+<h3>Summary</h3>
+<p>This project implements a complete, modular recommender system covering all four major algorithm families. Every method is a runnable module with a consistent API. The evaluation framework goes beyond accuracy to measure diversity, novelty, intra-list variety, and popularity bias — capturing trade-offs that accuracy metrics alone conceal. A temporal train/test split and a relevance threshold of ≥3.5 stars ensure the evaluation reflects realistic deployment conditions rather than an optimistic random holdout.</p>
+
+<h3>Algorithm Ranking by Use Case</h3>
+<table>
+  <tr><th>Use Case</th><th>Best Method</th><th>Why</th></tr>
+  <tr><td>Maximise recommendation accuracy</td><td>Matrix Factorization</td><td>P@10=0.090, NDCG=0.112, HR=0.498 — best at all K values</td></tr>
+  <tr><td>Catalogue discovery / new users</td><td>Content-Based</td><td>32% coverage, highest novelty (14.64), works without collaborative data</td></tr>
+  <tr><td>Simple, fast, no training</td><td>MostPopular</td><td>Strong baseline (P@10=0.064) with zero personalisation overhead</td></tr>
+  <tr><td>Serendipity / long tail</td><td>ContentBased + Random blend</td><td>High novelty, surfaces non-obvious items from across the catalogue</td></tr>
+  <tr><td>Intra-list variety</td><td>MostPopular / MatrixFact</td><td>ILD ≥ 0.93 — recommendations span diverse genres</td></tr>
+</table>
+
+<h3>Future Work</h3>
+<ul>
+  <li><strong>Hybrid model</strong> — blend MatrixFact (accuracy) with ContentBased (novelty) in a weighted ensemble; expected to push P@10 above 0.10 while maintaining coverage above 15%</li>
+  <li><strong>Proper MF with bias terms</strong> — replace TruncatedSVD with SGD-MF or ALS (e.g., via <code>surprise</code> or <code>implicit</code>), adding per-user and per-item bias terms to improve predicted rating calibration</li>
+  <li><strong>Implicit feedback</strong> — treat "viewed but not rated" as weak positive signal using BPR or ALS on binary interaction data</li>
+  <li><strong>Parameter tuning</strong> — grid search over CF neighbourhood size k and SVD dimensionality n_factors to find optimal settings per metric</li>
+  <li><strong>MMR re-ranking for ContentBased</strong> — post-process ContentBased lists with Maximal Marginal Relevance to raise ILD from 0.20 toward 0.50+ without sacrificing relevance</li>
+</ul>
+
+<hr style="margin: 40px 0 20px; border: none; border-top: 2px solid #e63946;">
+<p style="text-align:center; color:#888; font-size:9pt;">
+  CineMatch · Recommender Systems Individual Assignment · ESADE 2025/26<br>
+  MovieLens Small · 7 algorithms · 9 metrics (K=5,10,20) · Temporal split · Streamlit UI
+</p>
+
+</body>
+</html>
